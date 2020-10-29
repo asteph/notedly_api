@@ -1,16 +1,14 @@
 // index.js
 // This is the main entry point of our application
-
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
+require('dotenv').config();
+
+const db = require('./db');
+const models = require('./models');
 
 const port = process.env.PORT || 4000;
-
-let notes = [
-  { id: '1', content: 'This is a note', author: 'Alissa Stephens' },
-  { id: '2', content: 'I just had a baby!', author: 'Julie Hudson' },
-  { id: '3', content: 'My power is out!', author: 'Vonda Stephens' }
-]
+const DB_HOST = process.env.DB_HOST;
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
@@ -35,25 +33,27 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: () => 'Hello world!',
-    notes: () => notes,
-    note: (parent, args) => {
-      return notes.find(note => note.id === args.id);
+    notes: async () => {
+      return await models.Note.find();
+    },
+    note: async (parent, args) => {
+      return await models.Note.findById(args.id);
     }
   },
   Mutation: {
-    newNote: (parent, args) => {
-      let noteValue = {
-        id: String(notes.length + 1),
+    newNote: async (parent, args) => {
+      return await models.Note.create({
         content: args.content,
         author: 'Alissa Stephens'
-      };
-      notes.push(noteValue);
-      return noteValue;
+      });
     }
   }
 };
 
 const app = express();
+
+// Connect to the database
+db.connect(DB_HOST);
 
 // Apollo Server setup
 const server = new ApolloServer({ typeDefs, resolvers });
