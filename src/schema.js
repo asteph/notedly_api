@@ -23,10 +23,17 @@ module.exports = gql`
     updatedAt: DateTime!
   }
 
+  type NoteFeed {
+    notes: [Note]!
+    cursor: String!
+    hasNextPage: Boolean!
+  }
+
   type Query {
     me: User!
     note(id: ID!): Note!
     notes: [Note!]!
+    noteFeed(cursor: String): NoteFeed
     user(username: String!): User
     users:[User!]!
   }
